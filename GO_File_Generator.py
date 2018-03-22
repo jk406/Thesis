@@ -11,7 +11,7 @@ with gzip.open(gzfile, 'rt') as fi:
     for line in fi.readlines()[1:]:
         items = line.strip('\n').split('\t')
         ens_gen, ens_trn, ens_pro, ent, uni, name = items
-        ens_dict[ens_trn] = ens_dict.get(ens_trn, {'trn': {ens_trn}, 'gen': set(), 'pro': set(), 'uni': set(), 'ent': set(), 'name': set()})
+        ens_dict[ens_trn] = ens_dict.get(ens_trn, {'trn': {ens_trn}, 'gen': set(), 'pro': set(), 'uni': set(), 'ent': set(), 'name': set(), 'GO': set()})
         if ens_gen:
             ens_dict[ens_trn]['gen'].add(ens_trn)
         if ens_pro:
@@ -44,19 +44,20 @@ gzipf = url.urlopen('https://www.aniseed.cnrs.fr/aniseed/download/?file=data%2Fc
 with gzip.open(gzipf, 'rt') as fi:
     for line in fi.readlines()[5:]:
         items = line.strip('\n').split('\t')
-        name, kh = items[2], items[5]
+        name, GO, kh = items[2], items[4], items[5]
         name = name.split('; ')
         kh = kh.split(':')[1]
         try:
             kh_dict[kh]['name'] = kh_dict[kh]['name'] | set(name)
+            kh_dict[kh]['GO'].add(GO)
         except KeyError:
-            pass
+            kh_dict[kh] = {'trn': set(), 'gen': set(), 'pro': set(), 'uni': set(), 'ent': set(), 'name': set(name), 'GO': {GO}}
 
 with gzip.open('/home/jeff/Desktop/Thesis/Output/Ciona Intestinalis.gene2accession.txt.gz', 'wt') as fo:
-    fo.write('UniqueID#EntrezGeneID\tSymbolID\tAccessionID\tEntrezGeneID\tEnsemblGeneID\tEnsemblTranscriptID\tEnsemblProteinID\tUniProtKB_AC\n')
+    fo.write('UniqueID#EntrezGeneID\tSymbolID\tAccessionID\tEntrezGeneID\tEnsemblGeneID\tEnsemblTranscriptID\tEnsemblProteinID\tUniProtKB_AC\tGOAnnotation\n')
     for kh, ens_dict in kh_dict.items():
         out = kh
-        for key in ['name', 'uni', 'ent', 'gen', 'trn', 'pro', 'uni']:
+        for key in ['name', 'uni', 'ent', 'gen', 'trn', 'pro', 'uni', 'GO']:
             val = ens_dict[key]
             if val:
                 val = '|'.join(val)
