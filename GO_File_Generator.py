@@ -13,7 +13,7 @@ with gzip.open(gzfile, 'rt') as fi:
         ens_gen, ens_trn, ens_pro, ent, uni, name = items
         ens_dict[ens_trn] = ens_dict.get(ens_trn, {'trn': {ens_trn}, 'gen': set(), 'pro': set(), 'uni': set(), 'ent': set(), 'name': set(), 'GO': set()})
         if ens_gen:
-            ens_dict[ens_trn]['gen'].add(ens_trn)
+            ens_dict[ens_trn]['gen'].add(ens_gen)
         if ens_pro:
             ens_dict[ens_trn]['pro'].add(ens_pro)
         if ent:
