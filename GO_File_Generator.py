@@ -53,15 +53,42 @@ with gzip.open(gzipf, 'rt') as fi:
         except KeyError:
             kh_dict[kh] = {'trn': set(), 'gen': set(), 'pro': set(), 'uni': set(), 'ent': set(), 'name': set(name), 'GO': {GO}}
 
-with gzip.open('/home/jeff/Desktop/Thesis/Output/Ciona Intestinalis.gene2accession.txt.gz', 'wt') as fo:
-    fo.write('UniqueID#EntrezGeneID\tSymbolID\tAccessionID\tEntrezGeneID\tEnsemblGeneID\tEnsemblTranscriptID\tEnsemblProteinID\tUniProtKB_AC\tGOAnnotation\n')
-    for kh, ens_dict in kh_dict.items():
-        out = kh
-        for key in ['name', 'uni', 'ent', 'gen', 'trn', 'pro', 'uni', 'GO']:
-            val = ens_dict[key]
-            if val:
-                val = '|'.join(val)
-            else:
-                val = '-'
-            out += '\t{0}'.format(val)
-        fo.write(out + '\n')
+fo_acc = gzip.open('/home/jeff/Desktop/Thesis/Output/Ciona Intestinalis.gene2accession.txt.gz', 'wt')
+fo_acc.write('UniqueID#EntrezGeneID\tSymbolID\tAccessionID\tEntrezGeneID\tEnsemblGeneID\tEnsemblTranscriptID\tEnsemblProteinID\tUniProtKB_AC\tGOAnnotation\n')
+fo_ens = gzip.open('/home/jeff/Desktop/Thesis/Output/Ciona Intestinalis.gene2ensembl.txt.gz', 'wt')
+fo_ens.write('UniqueID#EntrezGeneID\tEnsemblGeneID\tEnsemblTranscriptID\tEnsemblProteinID\n')
+fo_uni = gzip.open('/home/jeff/Desktop/Thesis/Output/Ciona Intestinalis.gene2uniprot.txt.gz', 'wt')
+fo_uni.write('UniqueID#EntrezGeneID\tUniProtKB_AC\n')
+for kh, ens_dict in kh_dict.items():
+    out = kh
+    for key in ['name', 'uni', 'ent', 'gen', 'trn', 'pro', 'uni', 'GO']:
+        val = ens_dict[key]
+        if val:
+            val = '|'.join(val)
+        else:
+            val = '-'
+        out += '\t{0}'.format(val)
+    fo_acc.write(out + '\n')
+
+    out = kh
+    for key in ['gen', 'trn', 'pro']:
+        val = ens_dict[key]
+        if val:
+            val = '|'.join(val)
+        else:
+            val = '-'
+        out += '\t{0}'.format(val)
+    fo_ens.write(out + '\n')
+
+    out = kh
+    val = ens_dict['uni']
+    if val:
+        val = '|'.join(val)
+    else:
+        val = '-'
+    out += '\t{0}'.format(val)
+    fo_uni.write(out + '\n')
+
+fo_acc.close()
+fo_ens.close()
+fo_uni.close()
