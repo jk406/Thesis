@@ -28,9 +28,10 @@ with zipfile.ZipFile(BytesIO(gffzip.read())) as zipdir:
         upper_dict = {}
         lines = fi.readlines()
         for line in lines:
+            line = line.decode()
             words = line.split()
             chrna, typ = words[0], words[2]
-            if typ == "gene":
+            if typ == 'gene':
                 lo, up = int(words[3]), int(words[4])
                 lower_dict[chrna], upper_dict[chrna] = lower_dict.get(chrna, list()), upper_dict.get(chrna, list())
                 lower_dict[chrna].append(lo)
@@ -43,13 +44,14 @@ with zipfile.ZipFile(BytesIO(gffzip.read())) as zipdir:
         Gen_Info = {}
         lines = fi.readlines()
         for line in lines:
+            line = line.decode()
             words = line.split()
             chrna, st_gen, en_gen, typ, stra = words[0], int(words[3]), int(words[4]), words[2], words[6]
             Master[chrna] = Master.get(chrna, dict())
             Gen_Info[chrna] = Gen_Info.get(chrna, dict())
-            if typ == "gene":
-                for item in words[8].split(";"):
-                    if "name=" in item:
+            if typ == 'gene':
+                for item in words[8].split(';'):
+                    if 'name=' in item:
                         base = item[5:]
                 # lower range end
                 x = -1
@@ -77,14 +79,14 @@ with zipfile.ZipFile(BytesIO(gffzip.read())) as zipdir:
                     up_gen = en_gen + 3000
                 Gen_Info[chrna][base] = [stra, lo_gen, st_gen, en_gen, up_gen]
             else:
-                if typ == "mRNA":
-                    base, scrp = words[8].split(";")[0][14:], words[8].split(";")[1][10:]
+                if typ == 'mRNA':
+                    base, scrp = words[8].split(';')[0][14:], words[8].split(';')[1][10:]
                     Master[chrna][base] = Master[chrna].get(base, dict())
                     Master[chrna][base][scrp] = Master[chrna][base].get(scrp, dict())
                     Master[chrna][base][scrp][typ] = Master[chrna][base][scrp].get(typ, list())
                     Master[chrna][base][scrp][typ].append([st_gen, en_gen])
-                elif typ == "CDS" or typ == "five_prime_UTR" or typ == "three_prime_UTR":
-                    scrp = words[8].split(";")[0][14:]
+                elif typ == 'CDS' or typ == 'five_prime_UTR' or typ == 'three_prime_UTR':
+                    scrp = words[8].split(';')[0][14:]
                     base = '.'.join(scrp.split('.')[:3])
                     Master[chrna][base] = Master[chrna].get(base, dict())
                     Master[chrna][base][scrp] = Master[chrna][base].get(scrp, dict())
@@ -138,7 +140,6 @@ for chrna in Master.keys():
                 Master[chrna][base][scrp]['downgap'] = [[st_gene, lo - 1]]
                 Master[chrna][base][scrp]['upgap'] = [[up + 1, en_gene]]
 
-
 # pickle the master dictionary
 
 # In[8]:
@@ -155,15 +156,15 @@ with open(save_path + 'Gen_Info.pkl', 'wb') as fo:
 
 # In[6]:
 
-
+"""
 Bind_Sites = {}
 num = {}
 ord = {}
-bs_txt = url.urlopen('https://sdsuedu-my.sharepoint.com/personal/jkim6_sdsu_edu/_layouts/15/download.aspx?SourceUrl=%2Fpersonal%2Fjkim6%5Fsdsu%5Fedu%2FDocuments%2FThesis%2FPou4GenomeOutput%2Etxt')
-with open(bs_txt, 'r') as fi:
+with open('/home/jeff/Desktop/Thesis/Src_Files/Pou4GenomeOutput.txt', 'r') as fi:
     lines = fi.readlines()
     num['all'], ord['all'] = {}, {}
     for line in lines:
+        line = line.decode()
         words = line.split()
         motif = '-'.join(words[0].split('-')[:3])
         chrna, lo, up = words[1], int(words[2]), int(words[3])
@@ -228,22 +229,22 @@ with open(save_path + 'Bind_Sites.pkl', 'wb') as fo:
 # parse the conserved reigon data from the csv file
 
 # In[6]:
-
+"""
 
 con_list = []
 # makes a dictionary of each conservative-discovering method
-cons_gz = url.urlopen('https://sdsuedu-my.sharepoint.com/personal/jkim6_sdsu_edu/_layouts/15/download.aspx?SourceUrl=%2Fpersonal%2Fjkim6%5Fsdsu%5Fedu%2FDocuments%2FThesis%2FCons%2Etar%2Egz')
 
-with tarfile.open(cons_gz, 'r:gz') as dir_co:
+
+with tarfile.open('/home/jeff/Desktop/Thesis/Src_Files/Cons.tar.gz', 'r:gz') as dir_co:
     con_name = dir_co.getnames()
-    for con_meth in dir_co:
+    for name in con_name:
         con_reg = {}
         chr_con = set()
-        with open(con_meth, 'r') as fi_co:
-            lines_co = fi_co.readlines()
-            num = 1
+        with dir_co.extractfile(name) as con_meth:
+            lines_co = con_meth.readlines()
             tot = len(lines_co[1:])
             for line_co in lines_co[1:]:
+                line_co = line_co.decode()
                 words_co = line_co.split(',')
                 chrna_co = words_co[1]
                 chr_con.add(chrna_co)
@@ -251,7 +252,6 @@ with tarfile.open(cons_gz, 'r:gz') as dir_co:
                 co_en = co_st + int(words_co[3]) - 1
                 con_reg[chrna_co] = con_reg.get(chrna_co, dict())
                 con_reg[chrna_co][co_st] = co_en
-                num += 1
             con_list.append(con_reg)
 
 
@@ -271,28 +271,29 @@ for num in range(2):
                 for scr in Master[chrna][gene].keys():
                     for typ in Master[chrna][gene][scr].keys():
                         for raw in Master[chrna][gene][scr][typ]:
-                            for reg in con_reg[chrna].keys():
-                                end = con_reg[chrna][reg]
-                                if reg <= raw[0] and raw[1] <= end:
+                            for sta in con_reg[chrna].keys():
+                                end = con_reg[chrna][sta]
+                                if sta <= raw[0] and raw[1] <= end:
                                     Cons[chrna][gene][scr] = Cons[chrna][gene].get(scr, dict())
                                     Cons[chrna][gene][scr][typ] = Cons[chrna][gene][scr].get(typ, list())
                                     Cons[chrna][gene][scr][typ].append([raw[0], raw[1]])
-                                elif reg <= raw[0]:
+                                elif sta <= raw[0]:
                                     if raw[0] <= end <= raw[1]:
                                         Cons[chrna][gene][scr] = Cons[chrna][gene].get(scr, dict())
                                         Cons[chrna][gene][scr][typ] = Cons[chrna][gene][scr].get(typ, list())
                                         Cons[chrna][gene][scr][typ].append([raw[0], end])
                                 elif raw[1] <= end:
-                                    if raw[0] <= reg <= raw[1]:
+                                    if raw[0] <= sta <= raw[1]:
                                         Cons[chrna][gene][scr] = Cons[chrna][gene].get(scr, dict())
                                         Cons[chrna][gene][scr][typ] = Cons[chrna][gene][scr].get(typ, list())
-                                        Cons[chrna][gene][scr][typ].append([reg, raw[1]])
+                                        Cons[chrna][gene][scr][typ].append([sta, raw[1]])
                                 else:
-                                    if raw[0] <= reg and end <= raw[1]:
+                                    if raw[0] <= sta and end <= raw[1]:
                                         Cons[chrna][gene][scr] = Cons[chrna][gene].get(scr, dict())
                                         Cons[chrna][gene][scr][typ] = Cons[chrna][gene][scr].get(typ, list())
-                                        Cons[chrna][gene][scr][typ].append([reg, end])
-        name = con_name[num]
-        with open(save_path + 'Cons_{}.pkl'.format(name), 'wb') as fo:
-            pickle.dump(Cons, fo, pickle.HIGHEST_PROTOCOL)
+                                        Cons[chrna][gene][scr][typ].append([sta, end])
+
+    name = con_name[num][7:]
+    with open(save_path + 'Cons_{}.pkl'.format(name), 'wb') as fo:
+        pickle.dump(Cons, fo, pickle.HIGHEST_PROTOCOL)
 
