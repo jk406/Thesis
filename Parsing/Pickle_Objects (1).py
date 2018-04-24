@@ -156,7 +156,7 @@ with open(save_path + 'Gen_Info.pkl', 'wb') as fo:
 
 # In[6]:
 
-"""
+
 Bind_Sites = {}
 num = {}
 ord = {}
@@ -229,7 +229,7 @@ with open(save_path + 'Bind_Sites.pkl', 'wb') as fo:
 # parse the conserved reigon data from the csv file
 
 # In[6]:
-"""
+
 
 con_list = []
 # makes a dictionary of each conservative-discovering method
@@ -293,7 +293,7 @@ for num in range(2):
                                         Cons[chrna][gene][scr][typ] = Cons[chrna][gene][scr].get(typ, list())
                                         Cons[chrna][gene][scr][typ].append([sta, end])
 
-    name = con_name[num][7:]
+    name = con_name[num][7:-4]
     with open(save_path + 'Cons_{}.pkl'.format(name), 'wb') as fo:
         pickle.dump(Cons, fo, pickle.HIGHEST_PROTOCOL)
 
